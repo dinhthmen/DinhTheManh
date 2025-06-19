@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng truyền file có kí số (RSA)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50; /* Green for main actions */
+            --primary-dark: #388E3C;
+            --secondary-color: #2196F3; /* Blue for info/links */
+            --accent-color: #FFC107; /* Amber for highlights */
+            --background-start: #e0f2f7;
+            --background-end: #f4f4f9;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --light-text-color: #666;
+            --border-color: #ddd;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --success-bg: #e8f5e9;
+            --success-text: #2e7d32;
+            --error-bg: #ffebee;
+            --error-text: #c62828;
+            --info-bg: #e3f2fd;
+            --info-text: #1976d2;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 20px auto;
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: 15px; /* Slightly larger border-radius */
+            box-shadow: 0 10px 30px var(--shadow-medium); /* Stronger shadow */
+            animation: fadeIn 0.8s ease-out; /* Slower fade-in */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); } /* Start lower */
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em; /* Larger heading */
+            border-bottom: 2px solid var(--primary-color); /* Thicker, colored border */
+            padding-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+        }
+        h2 {
+            color: var(--text-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.8em; /* Larger sub-headings */
+            display: flex;
+            align-items: center;
+            background-color: #f0f8ff; /* Light background for headings */
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-light);
+        }
+        h2 i {
+            margin-right: 15px;
+            color: var(--primary-color); /* Primary color for icons */
+            font-size: 1.2em;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px; /* Increased padding */
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px var(--shadow-light); /* Individual section shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .section:hover {
+            transform: translateY(-5px); /* Lift on hover */
+            box-shadow: 0 12px 25px var(--shadow-medium); /* Stronger shadow on hover */
+        }
+        .section:last-of-type {
+            margin-bottom: 0;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px; /* Increased gap */
+        }
+
+        label {
+            font-weight: bold;
+            color: var(--light-text-color);
+            margin-bottom: 5px;
+            display: block; /* Ensures label takes full width */
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* More rounded inputs */
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            background-color: #fcfcfc;
+            color: var(--text-color);
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* Colored focus ring */
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary-color) 0%, var(--primary-dark) 100%); /* Gradient button */
+            color: white;
+            cursor: pointer;
+            padding: 12px 25px; /* Larger padding for buttons */
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            width: auto;
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Button shadow */
+            transition: all 0.3s ease;
+            text-transform: uppercase; /* Uppercase text */
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, var(--primary-dark) 0%, var(--primary-color) 100%); /* Reverse gradient on hover */
+            transform: translateY(-3px); /* Stronger lift */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.8;
+        }
+
+        .message {
+            margin-top: 25px; /* More space */
+            padding: 18px; /* Larger padding */
+            border-radius: 10px; /* More rounded messages */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.4s ease-out; /* Slightly slower */
+            word-break: break-all;
+            box-shadow: 0 2px 8px var(--shadow-light); /* Message shadow */
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); } /* Start further left */
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid var(--success-text); /* Border matches text color */
+        }
+        .error {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-text);
+        }
+        .info {
+            background-color: var(--info-bg);
+            color: var(--info-text);
+            border: 1px solid var(--info-text);
+        }
+
+        .message i {
+            font-size: 1.4em; /* Larger icons in messages */
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px; /* More space */
+        }
+        li {
+            margin-bottom: 12px; /* More space between list items */
+            font-size: 1.05em;
+        }
+        a {
+            color: var(--secondary-color); /* Blue for links */
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-weight: 600;
+        }
+        a:hover {
+            color: var(--primary-dark); /* Darker blue on hover */
+            text-decoration: underline;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.4);
+            border-top: 4px solid var(--accent-color); /* Yellow spinner */
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 0.8s linear infinite; /* Slightly faster spin */
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            input[type="file"],
+            input[type="text"],
+            button {
+                width: 100%;
+                padding: 10px;
+            }
+            .message {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ứng dụng truyền file dữ liệu có kí số (RSA)</h1>
+
+        <div class="section">
+            <h2><i class="fas fa-key"></i> 1. Tạo cặp khóa RSA</h2>
+            <form id="generateKeysForm">
+                <label for="keyNameGenerate">Tên khóa (ví dụ: my_keys):</label>
+                <input type="text" id="keyNameGenerate" name="key_name" value="default">
+                <button type="submit" id="generateKeysButton">
+                    Tạo khóa mới <span class="spinner" id="generateKeysSpinner" style="display:none;"></span>
+                </button>
+            </form>
+            <div id="generateKeysMessage" class="message info" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-upload"></i> 2. Tải lên và Ký số file</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label for="fileInput">Chọn file:</label>
+                <input type="file" id="fileInput" name="file" required>
+                <label for="keyNameUpload">Tên khóa (để ký, ví dụ: default):</label>
+                <input type="text" id="keyNameUpload" name="key_name" value="default">
+                <button type="submit" id="uploadButton">
+                    Tải lên và Ký số <span class="spinner" id="uploadSpinner" style="display:none;"></span>
+                </button>
+            </form>
+            <div id="uploadMessage" class="message info" style="display:none;"></div>
+            <div id="downloadLinks" style="margin-top: 25px;"></div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-shield-alt"></i> 3. Xác minh chữ ký số</h2>
+            <form id="verifyForm" enctype="multipart/form-data">
+                <label for="fileToVerifyInput">Chọn file gốc cần xác minh:</label>
+                <input type="file" id="fileToVerifyInput" name="file" required>
+                <label for="signatureFileInput">Chọn file chữ ký (.sig):</label>
+                <input type="file" id="signatureFileInput" name="signature_file" required>
+                <label for="keyNameVerify">Tên khóa (công khai, ví dụ: default):</label>
+                <input type="text" id="keyNameVerify" name="key_name" value="default">
+                <button type="submit" id="verifyButton">
+                    Xác minh chữ ký <span class="spinner" id="verifySpinner" style="display:none;"></span>
+                </button>
+            </form>
+            <div id="verifyMessage" class="message info" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to display messages
+        function displayMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i> ${message}`;
+            element.className = `message ${type}`;
+            element.style.display = 'flex'; // Use flex for icon alignment
+        }
+
+        // Helper function to hide messages
+        function hideMessage(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        // Helper function to show/hide spinner
+        function toggleSpinner(spinnerId, buttonId, show) {
+            const spinner = document.getElementById(spinnerId);
+            const button = document.getElementById(buttonId);
+            if (show) {
+                spinner.style.display = 'inline-block';
+                button.disabled = true;
+                // button.style.opacity = 0.7; // Removed to let button:disabled handle opacity
+            } else {
+                spinner.style.display = 'none';
+                button.disabled = false;
+                // button.style.opacity = 1; // Removed
+            }
+        }
+
+        // 1. Generate Keys Form
+        document.getElementById('generateKeysForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            hideMessage('generateKeysMessage');
+            toggleSpinner('generateKeysSpinner', 'generateKeysButton', true);
+
+            const formData = new FormData(this);
+            try {
+                const response = await fetch('/generate_keys', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    displayMessage('generateKeysMessage', data.message, 'success');
+                } else {
+                    displayMessage('generateKeysMessage', data.error || 'Lỗi khi tạo khóa.', 'error');
+                }
+            } catch (error) {
+                displayMessage('generateKeysMessage', 'Lỗi kết nối server: ' + error.message, 'error');
+            } finally {
+                toggleSpinner('generateKeysSpinner', 'generateKeysButton', false);
+            }
+        });
+
+
+        // 2. Upload and Sign Form
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            hideMessage('uploadMessage');
+            document.getElementById('downloadLinks').innerHTML = ''; // Clear previous links
+            toggleSpinner('uploadSpinner', 'uploadButton', true);
+
+            const formData = new FormData(this);
+            const fileInput = document.getElementById('fileInput');
+
+            if (fileInput.files.length === 0) {
+                displayMessage('uploadMessage', 'Vui lòng chọn một file.', 'error');
+                toggleSpinner('uploadSpinner', 'uploadButton', false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/upload_and_sign', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayMessage('uploadMessage', data.message, 'success');
+                    const downloadLinksDiv = document.getElementById('downloadLinks');
+                    downloadLinksDiv.innerHTML = `
+                        <h3><i class="fas fa-download"></i> Tải xuống File và Chữ ký:</h3>
+                        <ul>
+                            <li><a href="/download/${data.filename}" target="_blank">File gốc: <strong>${data.filename}</strong></a></li>
+                            <li><a href="/download/${data.signature_filename}" target="_blank">File chữ ký: <strong>${data.signature_filename}</strong></a></li>
+                        </ul>
+                        <p><strong>Chữ ký (base64):</strong> ${data.signature}</p>
+                    `;
+                } else {
+                    displayMessage('uploadMessage', data.error || 'Lỗi khi tải lên và ký số.', 'error');
+                }
+            } catch (error) {
+                displayMessage('uploadMessage', 'Lỗi kết nối server: ' + error.message, 'error');
+            } finally {
+                toggleSpinner('uploadSpinner', 'uploadButton', false);
+                // Optionally clear the form after successful upload
+                // document.getElementById('uploadForm').reset();
+            }
+        });
+
+        // 3. Verify Signature Form
+        document.getElementById('verifyForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            hideMessage('verifyMessage');
+            toggleSpinner('verifySpinner', 'verifyButton', true);
+
+            const formData = new FormData(this);
+            const fileToVerifyInput = document.getElementById('fileToVerifyInput');
+            const signatureFileInput = document.getElementById('signatureFileInput');
+
+            if (fileToVerifyInput.files.length === 0 || signatureFileInput.files.length === 0) {
+                displayMessage('verifyMessage', 'Vui lòng chọn cả file gốc và file chữ ký.', 'error');
+                toggleSpinner('verifySpinner', 'verifyButton', false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/verify_signature', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displayMessage('verifyMessage', data.message, 'success');
+                } else {
+                    displayMessage('verifyMessage', data.message, 'error');
+                }
+            } catch (error) {
+                displayMessage('verifyMessage', 'Lỗi kết nối server: ' + error.message, 'error');
+            } finally {
+                toggleSpinner('verifySpinner', 'verifyButton', false);
+                // Optionally clear the form after verification
+                // document.getElementById('verifyForm').reset();
+            }
+        });
+    </script>
+</body>
+</html>
